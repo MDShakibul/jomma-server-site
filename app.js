@@ -24,7 +24,7 @@ conn.connect((err) =>{
 });
 
 app.get('/v1/api/products',(req, res) => {
-  let sqlQuery = "SELECT * FROM products";
+  let sqlQuery = `SELECT * FROM products WHERE active_status = 1`;
   
   let query = conn.query(sqlQuery, (err, results) => {
     if(err) throw err;
@@ -38,18 +38,33 @@ app.get('/v1/api/products',(req, res) => {
 });
    
 
-   
-
-app.post('/v1/api/items',(req, res) => {
-  let data = {title: req.body.title, body: req.body.body};
+app.post('/v1/api/add-products', (req, res) => {
+    const data = req.body;
   
-  let sqlQuery = "INSERT INTO items SET ?";
+    let sqlQuery = 'INSERT INTO transactions (user_id, product_id, order_amount) VALUES ?';
   
-  let query = conn.query(sqlQuery, data,(err, results) => {
-    if(err) throw err;
-    res.send(apiResponse(results));
+    const values = data.map((product) => [
+      product.user_id,
+      product.product_id,
+      product.order_amount,
+    ]);
+  
+    conn.query(sqlQuery, [values], (err, results) => {
+      if (err) {
+        res.json({
+            status: 500,
+            success: false,
+            message:"Save Failed",
+        });
+      } else {
+        res.json({
+            status: 200,
+            success: true,
+            message:"Save successfully",
+        });
+      }
+    });
   });
-});
    
 
 
